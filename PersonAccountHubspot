@@ -1,0 +1,16 @@
+trigger PersonAccountHubspot on Lead (before insert, before update)
+{ /*
+//Build the field requirement map---------------------------------------------------------------------
+map<string, schema.Sobjectfield> descFields = schema.Sobjecttype.Lead.fields.getMap();
+map<string, boolean> fldReqMap = new map<string, boolean>();
+for(string fld : descFields.keySet()){
+schema.Describefieldresult descResult = descFields.get(fld).getDescribe();
+fldReqMap.put(fld, descResult.isCreateable() && !descResult.isNillable() && !descResult.isDefaultedOnCreate());
+}
+//-----------------------------------------------------------------------------------------------------
+for (Lead l  : trigger.new){ 
+if(l.RecordTypeId == '0Call: 12500000001250000000UHe4'){
+l.company = (fldReqMap.get('company')) ? '[not provided]' : '';
+}
+}*/
+}
