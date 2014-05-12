@@ -1,0 +1,41 @@
+trigger PersonAccountUpdateHSIntel on Account (after update) {
+ /* List<String> accounts = new List<String>();
+  Map<String, Account> oldAs = new Map<String, Account>();
+  Map<String, Account> newAs = new Map<String, Account>();
+  
+  for (Account a : trigger.new) {
+    if (a.recordTypeId == '0Call: 1250000000912500000009ZbC') {
+        accounts.add(String.valueOf(a.Id).substring(0,15));  
+        newAs.put(String.valueOf(a.Id).substring(0,15), a);
+        oldAs.put(String.valueOf(a.Id).substring(0,15), trigger.oldmap.get(a.Id));
+    }
+  }
+  
+  List<HubSpot_Inc__HubSpot_Intelligence__c> hsIntels = [select id, 
+                                                                HubSpot_Inc__Has_Changes__c,
+                                                                HubSpot_Inc__Changes__c,
+                                                                HubSpot_Inc__Recent_Conversion_Event__c,
+                                                                PersonAccountId__c
+                                                          from HubSpot_Inc__HubSpot_Intelligence__c
+                                                         where PersonAccountId__c in :accounts];
+ 
+  if (hsIntels.size() > 0) {
+    List<String> fieldNames = new List<String>();
+    Account AccountObject = new Account();
+    Schema.Sobjecttype objType = AccountObject.getSObjectType();
+    Map<String, Schema.Sobjectfield> M = Schema.SObjectType.Account.fields.getMap();
+    for (String s : M.keyset()) {
+      fieldNames.add(s);
+    }
+                                                         
+      for (HubSpot_Inc__HubSpot_Intelligence__c hsI : hsIntels) {
+        PersonAccountUpdateTranscoder paut=  new PersonAccountUpdateTranscoder(oldAs.get(hsI.PersonAccountId__c), newAs.get(hsI.PersonAccountId__c), hsI,fieldNames);
+        String newJson = paut.getNewJson();
+        hsI.HubSpot_Inc__Changes__c = newJson;
+        hsI.HubSpot_Inc__Has_Changes__c = true;
+      }
+      
+      update hsIntels;
+  } */
+  
+}
