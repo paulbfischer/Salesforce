@@ -1,0 +1,208 @@
+public with sharing class PersonAccountUpdateTranscoder {
+  /*
+  public HubSpot_Inc__HubSpot_Intelligence__c hs;
+  public Account olda;
+  public Account newa;
+  public String newJson;
+  public List<String> accountFields;
+  
+  public PersonAccountUpdateTranscoder(Account originalAccount, Account newAccount, HubSpot_Inc__HubSpot_Intelligence__c hsIntel, List<String> accountFieldNames) {
+    hs = hsIntel;
+    olda = originalAccount;
+    newa = newAccount;
+    accountFields = accountFieldNames;
+    Map<String,String> changes = changedAccountFields();
+    String existingChanges;
+    if (hs.HubSpot_Inc__Changes__c == null) {
+      existingChanges = '';
+    } else {
+      existingChanges = hs.HubSpot_Inc__Changes__c;
+    }
+    newJson = makeJson(changes, existingChanges);
+  }
+  
+  public String getNewJson() {
+    return newJson;
+  }
+  
+  public List<String> getAccountFields() {
+    //List<String> fieldNames = new List<String>();
+    //Account AccountObject = new Account();
+    //Schema.Sobjecttype objType = AccountObject.getSObjectType();
+    //Map<String, Schema.Sobjectfield> M = Schema.SObjectType.Account.fields.getMap();
+    //for (String s : M.keyset()) {
+    //  fieldNames.add(s);
+    //}
+    return accountFields;
+  }
+  
+  public Map<String,String> changedAccountFields() {
+    Map<String, String> changedFields = new Map<String,String>();
+    for (String s : getAccountFields()) {
+      try{
+        if (olda.get(s) != newa.get(s)) {
+          changedFields.put(s,String.valueOf(newa.get(s)));
+        }
+      } catch(Exception e) {
+        //do nothing
+      }
+    }
+    return changedFields;
+  }
+  
+  public String makeJson(Map<String,String> changedFields, String existingJson) {
+    OutgoingChangesTranscoder oct = new OutgoingChangesTranscoder();
+    oct = oct.fromJson(existingJson);
+    oct.writeFieldValues(changedFields);
+    return oct.toJson();
+  }
+  
+  public static testmethod void testit() {
+    //Test lead trigger as well
+    Lead l = new Lead();
+    l.LastName = 'Test';
+    l.FirstName = 'Name';
+    l.RecordTypeId = '0Call: 12500000001250000000UHe4';
+    l.Company = '[not provided]';
+    insert l;
+  
+  
+    Account a = new Account();
+    a.FirstName = 'Name';
+    a.lastname = 'test';
+    a.RecordTypeId = '0Call: 1250000000912500000009ZbC';
+    insert a;
+    
+    a = [select lastname, firstname, personcontactid from Account where id =:a.Id];
+    
+    HubSpot_Inc__HubSpot_Intelligence__c hsI = new HubSpot_Inc__HubSpot_Intelligence__c();
+    hsI.HubSpot_Inc__Contact__c = a.personcontactId;
+    hsI.HubSpot_Inc__GUID__c = 'testguid';
+    insert hsI;
+    
+    //a.Territory_GM__pc = 'test';
+    a.BillingCity = 'test';
+    update a;
+    
+    hsI = [select id, HubSpot_Inc__Changes__c, HubSpot_Inc__Has_Changes__c from HubSpot_Inc__HubSpot_Intelligence__c where id = :hsI.id];
+    
+    system.assertNotEquals(null, hsI.HubSpot_Inc__Changes__c);
+    system.assert(hsI.HubSpot_Inc__Has_Changes__c);
+    
+    a.BillingState = 'test 2';
+    update a;
+    
+    hsI = [select id, HubSpot_Inc__Changes__c, HubSpot_Inc__Has_Changes__c from HubSpot_Inc__HubSpot_Intelligence__c where id = :hsI.id];
+    
+    system.assertNotEquals(null, hsI.HubSpot_Inc__Changes__c);
+    system.assert(hsI.HubSpot_Inc__Has_Changes__c);
+    
+  }
+  
+
+class OutgoingChangesTranscoder {
+  private final Map<String, String> fieldValues;
+  private final Map<String, String> crmDetails;
+
+  public OutgoingChangesTranscoder() {
+    this(new Map<String, String>(), new Map<String, String>());
+  }
+
+  public OutgoingChangesTranscoder(Map<String, String> fieldValues, Map<String, String> crmDetails) {
+    this.fieldValues = fieldValues;
+    this.crmDetails = crmDetails;
+  }
+
+  public OutgoingChangesTranscoder fromJson(String json) {
+    try {
+      System.JSONParser p = System.JSON.createParser(json);
+      Map<String, String> fieldValues = new Map<String, String>();
+      Map<String, String> crmDetails = new Map<String, String>();
+
+      while (p.nextToken() != null) {
+        if(p.getCurrentToken() != JSONToken.FIELD_NAME) {
+          continue;
+        }
+
+        String fieldName = p.getText();
+
+        if (fieldName == 'fields') {
+          p.nextToken();
+          mapFromJson(p, fieldValues);
+        } else if (fieldName == 'crmDetails') {
+          p.nextToken();
+          mapFromJson(p, crmDetails);
+        } else {
+          p.nextToken();
+          p.skipChildren();
+        }
+      }
+
+      return new OutgoingChangesTranscoder(fieldValues, crmDetails);
+    } catch (JSONException e) {
+      return new OutgoingChangesTranscoder(new Map<String, String>(), new Map<String, String>());
+    }
+  }
+
+  public void writeFieldValues(Map<String, String> fieldValues) {
+    for (String name : fieldValues.keySet()) {
+      writeFieldValue(name, fieldValues.get(name));
+    }
+  }
+
+  public void writeCrmDetails(Map<String, String> crmDetails) {
+    for (String name : crmDetails.keySet()) {
+      writeCrmDetail(name, crmDetails.get(name));
+    }
+  }
+
+  private void mapFromJson(System.JSONParser p, Map<String, String> target) {
+    while(p.nextToken() != JSONToken.END_OBJECT) {
+      p.nextValue();
+      target.put(p.getCurrentName(), p.getText());
+    }
+  }
+
+  private void writeMapField(Map<String, String> target, String name, String value) {
+    if(value == null) {
+      return;
+    }
+
+    target.put(name, value);
+  }
+
+  public void writeFieldValue(String name, String value) {
+    writeMapField(fieldValues, name, value);
+  }
+
+  public void writeCrmDetail(String name, String value) {
+    writeMapField(crmDetails, name, value);
+  }
+
+  public String toJson() {
+    JSONGenerator g = JSON.createGenerator(false);
+    g.writeStartObject();
+    g.writeFieldName('fields');
+    mapToJson(fieldValues, g);
+    g.writeFieldName('crmDetails');
+    mapToJson(crmDetails, g);
+    g.writeFieldName('metadata');
+    g.writeStartObject();
+    //g.writeStringField('version', HubSpotGlobals.packageVersion());
+    //g.writeStringField('salesforceUrl', HubSpotGlobals.salesforceUrl());
+    g.writeEndObject();
+    return g.getAsString();
+  }
+
+  private void mapToJson(Map<String, String> source, JSONGenerator g) {
+    g.writeStartObject();
+
+    for (String name : source.keySet()) {
+      g.writeStringField(name, source.get(name));
+    }
+
+    g.writeEndObject();
+  }
+}
+ */
+}
