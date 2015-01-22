@@ -1,6 +1,4 @@
 ** 
-* Created by: Eustace Consulting [www.eustaceconsulting.com][Developer: Ari Leeds] 
-* Description: 
 * Finds person account that have been updated and pushes the proper rec type id into
 * the contact version of the record.
 */
