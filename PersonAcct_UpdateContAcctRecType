@@ -1,0 +1,11 @@
+-** 
+-* Finds person account that have been updated and pushes the proper rec type id into
+-* the contact version of the record.
+-*/
+-
+- trigger PersonAcct_UpdateContAcctRecType on Account (before insert, before update) {
+-/*
+-  for(Account a : trigger.new)
+-    if(a.IsPersonAccount)a.acctrectype__pc = '0Call: 1250000000912500000009ZbC';
+-*/
+-}
